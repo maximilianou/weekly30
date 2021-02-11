@@ -232,23 +232,36 @@ jobs:
 #        password: ${{ secrets.GITHUB_TOKEN }} 
 ```
 
+- Result in Github Action Log page.
+```
+latest: digest: sha256:b420826a74b982ae5e760db22bd8236610b0da5b83300aadae9e5d00d55999c1 size: 2407
+Docker image docker.io/***/api30ci:v1 pushed to registry
+```
+
 - Result taken from dockerhub
 ```
 $ docker run maximilianou/api30ci
 Unable to find image 'maximilianou/api30ci:latest' locally
 latest: Pulling from maximilianou/api30ci
 0a6724ff3fcd: Already exists 
-6dbd34771a81: Already exists 
-6713a7e8bbfe: Already exists 
-341b42aeff67: Already exists 
-cc41fed4e0c3: Pull complete 
-15d27c95ffa4: Pull complete 
-151792e17acb: Pull complete 
-161b90eafc10: Pull complete 
-384787c70ae5: Pull complete 
+...
 b29fb277ac54: Pull complete 
 Digest: sha256:4afac743ad2f417867a4c51ccd8d7da1d227477a7d88e3e3d7da00c7bf265581
 Status: Downloaded newer image for maximilianou/api30ci:latest
 Ok!!
+```
+
+---
+## Step 9 - Deploy, Starting, let's go .. Typescript, React, Kubernetes
+
+
+```
+npm install -g create-react-app
+
+npx create-react-app ui --template typescript
+cd ui
+npm i react-query styled-components
+npm i -D @material-ui/core @material-ui/icons @types/styled-components
+
 ```
 
