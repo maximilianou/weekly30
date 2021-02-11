@@ -171,3 +171,13 @@ jobs:
 - https://github.com/marketplace?type=actions
 - https://docs.github.com/en/actions/learn-github-actions
 
+- Using existing docker build push action 
+
+
+- https://github.com/marketplace/actions/docker-build-push-action
+
+Support:
+- Docker Hub
+- Google Container Registry (GCR)
+- AWS Elastic Container Registry (ECR)
+- GitHub Docker Registry

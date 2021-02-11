@@ -25,10 +25,13 @@ jobs:
     - run: cd api && npm run build --if-present
     - run: cd api && npm test
     - name: Build and Push Docker Image
-      run: |
-        echo $GITHUB_TOKEN | docker login ghcr.io -u maximilianou@gmail.com --password-stdin
-        docker build . -t ghcr.io/maximilianou/api30ci:latest
-        docker push ghcr.io/maximilianou/api30ci:latest
+      uses: mr-smithers-excellent/docker-build-push@v5
+      with:
+        image: maximilianou/api30
+        tags: v1, latest
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }} 
 #  publish:
 #    needs: build
 #    steps:
