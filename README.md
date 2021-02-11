@@ -163,3 +163,11 @@ jobs:
 #    needs: build
 ```
 
+
+---
+## Step 7 - Github Action Push Image to GHCR Github Container Registry
+
+### Looking for Github Actions Pre Build
+- https://github.com/marketplace?type=actions
+- https://docs.github.com/en/actions/learn-github-actions
+
