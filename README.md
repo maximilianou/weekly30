@@ -181,3 +181,74 @@ Support:
 - Google Container Registry (GCR)
 - AWS Elastic Container Registry (ECR)
 - GitHub Docker Registry
+
+### OK OK OK, I try with ghcr.io but, this happend, so i will use dockerhub
+I can push over command line, but I can't over github action, I will see this later.
+```
+denied: failed_precondition: Improved container support has not been enabled for 'github-actions'. Learn more: https://docs.github.com/packages/getting-started-with-github-container-registry/enabling-improved-container-support
+Error: Command failed: docker push ghcr.io/maximilianou/api30ci:v1
+```
+
+---
+## Step 8 - Github Action Push Image to Docker Hub
+- github repository -> Settings -> Secret -> DOCKER_USERNAME, DOCKER_PASSWORD
+
+- .github/workflows/ci.yml
+```yml
+name: CI Typescript Node.js 
+# https://docs.github.com/en/actions
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [14.x]
+    steps:
+    - uses: actions/checkout@v2
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{ matrix.node-version }}
+    - run: cd api && npm ci
+    - run: cd api && npm run build --if-present
+    - run: cd api && npm test
+    - name: Build and Push Docker Image
+      uses: mr-smithers-excellent/docker-build-push@v5
+      with:
+        image: maximilianou/api30ci
+        tags: v1, latest
+        dockerfile: api/Dockerfile.ci
+        directory: api
+        registry: docker.io
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+#        registry: ghcr.io
+#        username: ${{ github.actor }}
+#        password: ${{ secrets.GITHUB_TOKEN }} 
+```
+
+- Result taken from dockerhub
+```
+$ docker run maximilianou/api30ci
+Unable to find image 'maximilianou/api30ci:latest' locally
+latest: Pulling from maximilianou/api30ci
+0a6724ff3fcd: Already exists 
+6dbd34771a81: Already exists 
+6713a7e8bbfe: Already exists 
+341b42aeff67: Already exists 
+cc41fed4e0c3: Pull complete 
+15d27c95ffa4: Pull complete 
+151792e17acb: Pull complete 
+161b90eafc10: Pull complete 
+384787c70ae5: Pull complete 
+b29fb277ac54: Pull complete 
+Digest: sha256:4afac743ad2f417867a4c51ccd8d7da1d227477a7d88e3e3d7da00c7bf265581
+Status: Downloaded newer image for maximilianou/api30ci:latest
+Ok!!
+```
+
