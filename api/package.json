@@ -6,7 +6,7 @@
   "scripts": {
     "build": "./node_modules/.bin/tsc",
     "run": "./node_modules/.bin/ts-node ./src/index.ts",
-    "start": "node ./build/index.js",
+    "start": "node ./lib/index.js",
     "test": "echo 'TODO: TDD .. '",
     "ci": "echo 'TODO:Continuous Integracion .. ' "
   },
