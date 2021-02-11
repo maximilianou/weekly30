@@ -22,7 +22,7 @@
 - https://docs.docker.com/develop/develop-images/multistage-build/
 
 ---
-## Step - Typescript Project
+## Step 3 - Typescript Project
 - Start Typescript Project Base
 ```
 mkdir api
@@ -59,7 +59,7 @@ npm i -D @types/jest ts-jest ts-node typescript
 ```
 
 ---
-## Step - Docker Image
+## Step 4 - Docker Image
 - api/Dockerfile
 ```dockerfile
 FROM node:alpine AS builder
@@ -97,7 +97,7 @@ $ docker run ghcr.io/maximilianou/api30:latest
 Ok!!
 ```
 ---
-## Step - publish docker image
+## Step 5 - publish docker image
 - https://docs.github.com/en/packages/guides/pushing-and-pulling-docker-images
 
 - Docker Login Github Container Registry 
@@ -132,4 +132,34 @@ Digest: sha256:08b15866ec8b2bbae5d812758acfd3708eeace725e9fd638f0d8422647e0e8cf
 Status: Downloaded newer image for ghcr.io/maximilianou/api30:latest
 Ok!!
 ```
- 
+
+---
+## Step 6 - Github Action looking for CI
+- .github/workflows/ci.yml 
+```yml
+name: CI Typescript Node.js 
+# https://docs.github.com/en/actions
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [14.x]
+    steps:
+    - uses: actions/checkout@v2
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{ matrix.node-version }}
+    - run: cd api && npm ci
+    - run: cd api && npm run build --if-present
+    - run: cd api && npm test
+#  publish:
+#    needs: build
+```
+
