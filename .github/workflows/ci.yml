@@ -27,7 +27,7 @@ jobs:
     - name: Build and Push Docker Image
       uses: mr-smithers-excellent/docker-build-push@v5
       with:
-        image: maximilianou/api30
+        image: maximilianou/api30ci
         tags: v1, latest
         dockerfile: api/Dockerfile.ci
         directory: api
