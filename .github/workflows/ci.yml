@@ -30,6 +30,7 @@ jobs:
         image: maximilianou/api30
         tags: v1, latest
         dockerfile: api/Dockerfile.ci
+        directory: api
         registry: ghcr.io
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }} 
