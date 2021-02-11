@@ -262,6 +262,156 @@ npx create-react-app ui --template typescript
 cd ui
 npm i react-query styled-components
 npm i -D @material-ui/core @material-ui/icons @types/styled-components
-
+npm i -D serve
+```
+- ui/package.json
+```json
+{
+  "name": "ui",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "react": "^17.0.1",
+    "react-dom": "^17.0.1",
+    "react-query": "^3.8.3",
+    "react-scripts": "4.0.2",
+    "styled-components": "^5.2.1",
+    "web-vitals": "^1.1.0"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "html": "node ./node_modules/serve/bin/serve.js -s build",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "@material-ui/core": "^4.11.3",
+    "@material-ui/icons": "^4.11.2",
+    "@testing-library/jest-dom": "^5.11.9",
+    "@testing-library/react": "^11.2.5",
+    "@testing-library/user-event": "^12.7.0",
+    "@types/jest": "^26.0.20",
+    "@types/node": "^12.19.16",
+    "@types/react": "^17.0.1",
+    "@types/react-dom": "^17.0.0",
+    "@types/styled-components": "^5.1.7",
+    "serve": "^11.3.2",
+    "typescript": "^4.1.5"
+  }
+}
 ```
 
+- ui/src/index.tsx
+```tsx
+import React from 'react';
+import ReactDOM from 'react-dom';
+import App from './App';
+ReactDOM.render( <App />, document.querySelector('#root'));
+```
+
+- ui/src/App.tsx
+```tsx
+const App = () => {
+  return (
+    <div className="App">
+      <p>Strarting..</p>
+      <p>Typescript, React, Nodejs, CI Github Action, Docker Hub, Kubernetes.</p> 
+      <p>Jest, Cypress, MongoDB, Redis, Postgres, GraphQL.</p> 
+      <p>100% Coverage</p> 
+      <p>Weekly Release, Please!!</p>
+    </div>
+  );
+}
+export default App;
+```
+
+- ui/src/App.test.tsx
+```tsx
+import React from 'react';
+import { render, screen } from '@testing-library/react';
+import App from './App';
+
+test('renders Weekly Release, Please!!', () => {
+  render(<App />);
+  const linkElement = screen.getByText(/Weekly Release, Please!!/i);
+  expect(linkElement).toBeInTheDocument();
+});
+```
+
+---
+## Step 10 - Deploy.
+
+- Login into Docker Hub, with password
+```
+$cat ~/dockerhub.pwd | docker login -u maximilianou --password-stdin 
+
+Login Succeeded
+```
+
+- This have to be the Secret in Kubernetes, to access images in dockerhub
+```
+$ cat ~/.docker/config.json 
+{
+	"auths": {
+		"docker.pkg.github.com": {
+			"auth": "b......"
+		},
+		"ghcr.io": {
+			"auth": "b....."
+		},
+		"https://index.docker.io/v1/": {
+			"auth": "b....."
+		}
+	}
+}
+```
+
+- Minikube - Kubernetes Local Machine
+```
+$ minikube ssh
+docker@minikube:~$ pwd
+/home/docker
+docker@minikube:~$ exit
+logout
+```
+
+- Minikube - Kubernentes login in DockerHub
+```
+$ minikube ssh
+docker@minikube:~$ cat ~/dockerhub.pwd | docker login -u maximilianou --password-stdin https://index.docker.io/v1/ 
+
+Login Succeeded
+```
+- Minikube - Kubernetes - Check .docker credentials
+```
+docker@minikube:~$ ls -a
+.  ..  .bash_history  .bash_logout  .bashrc  .docker  .profile  .ssh 
+
+docker@minikube:~$ cat .docker/config.json 
+{
+	"auths": {
+		"https://index.docker.io/v1/": {
+			"auth": "b....."
+		}
+	}
+}
+```
