@@ -1,7 +1,7 @@
 # weekly30
 
 ---
-## Step 1 - start project from phone.
+## Step 1 - start project from phone. ( I have an iclever keyboard )
 
 - Termux
 - install node
@@ -474,6 +474,7 @@ docker@minikube:~$ cat .docker/config.json
   }
 }
 ```
+
 - dockerignore
 ```
 *
@@ -515,3 +516,160 @@ ENTRYPOINT [ "/sbin/tini","--", "npm", "run", "html" ]
 ```
 $ docker run -p 3030:3030 maximilianou/ui30local:latest
 ```
+
+
+---
+## Step 12 - CI - github action - Docker Image push to DockerHub
+
+- Copy file .docker/config.json to the host
+```
+:~/projects/weekly30$ scp -i $(minikube ssh-key) docker@$(minikube ip):.docker/config.json .docker/config.json
+.docker/config.json: No such file or directory
+
+:~$ scp -i $(minikube ssh-key) docker@$(minikube ip):.docker/config.json .docker/config.json
+config.json  
+```
+- k8s/docker-secret.yml
+```yml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: my-registry-key
+type: kubernetes.io/dockerconfigjson
+data:
+  .dockerconfigjson:
+
+```
+
+- Create the secrete over the file ~/.docker/config.json
+```
+:~$ kubectl create secret generic my-registry-key --from-file=.dockerconfigjson=.docker/config.json --type=kubernetes.io/dockerconfigjson
+secret/my-registry-key created
+```
+
+```
+:~/projects/weekly30$ kubectl get secret
+NAME                  TYPE                                  DATA   AGE
+default-token-rngjz   kubernetes.io/service-account-token   3      9d
+my-registry-key       kubernetes.io/dockerconfigjson        1      66s
+```
+
+- Check :~/projects/weekly30$ kubectl get secret -o yaml
+```yml
+apiVersion: v1
+items:
+- apiVersion: v1
+  data:
+    ca.crt: LS0................
+    namespace: bXktbmFtZXNwYWNl
+    token: ZXl.................
+  kind: Secret
+  metadata:
+    annotations:
+      kubernetes.io/service-account.name: default
+      kubernetes.io/service-account.uid: 4ef7c6a8-84c2-4940-8daf-ce04cc6b92e6
+    creationTimestamp: "2021-02-03T14:09:33Z"
+    managedFields:
+    - apiVersion: v1
+      fieldsType: FieldsV1
+      fieldsV1:
+        f:data:
+          .: {}
+          f:ca.crt: {}
+          f:namespace: {}
+          f:token: {}
+        f:metadata:
+          f:annotations:
+            .: {}
+            f:kubernetes.io/service-account.name: {}
+            f:kubernetes.io/service-account.uid: {}
+        f:type: {}
+      manager: kube-controller-manager
+      operation: Update
+      time: "2021-02-03T14:09:33Z"
+    name: default-token-rngjz
+    namespace: my-namespace
+    resourceVersion: "73210"
+    uid: 2f3d0ce1-241e-4a95-9f49-13c1796ca0ef
+  type: kubernetes.io/service-account-token
+- apiVersion: v1
+  data:
+    .dockerconfigjson: e.........................................g..............
+  kind: Secret
+  metadata:
+    creationTimestamp: "2021-02-12T18:21:51Z"
+    managedFields:
+    - apiVersion: v1
+      fieldsType: FieldsV1
+      fieldsV1:
+        f:data:
+          .: {}
+          f:.dockerconfigjson: {}
+        f:type: {}
+      manager: kubectl-create
+      operation: Update
+      time: "2021-02-12T18:21:51Z"
+    name: my-registry-key
+    namespace: my-namespace
+    resourceVersion: "558350"
+    uid: c0d9a4a2-4fa8-492d-9d8d-b2bd6dd4a28a
+  type: kubernetes.io/dockerconfigjson
+kind: List
+metadata:
+  resourceVersion: ""
+  selfLink: ""
+```
+
+---
+## Step 13 - CD - AWS Client install with Docker, aws-cli
+
+- aws cli
+```
+:~/projects/weekly30$ docker run --rm -it amazon/aws-cli --version
+aws-cli/2.1.26 Python/3.7.3 Linux/4.19.0-14-amd64 docker/x86_64.amzn.2 prompt/off
+```
+
+- AWS - Access aws s3 from aws cli with credentials
+```
+:~/projects/weekly30$ docker run --rm -it -v ~/.aws:/root/.aws amazon/aws-cli s3 ls
+2021-01-12 17:35:19 cf-templates-63uh8fkzfivz-us-east-2
+2021-01-26 13:21:32 serverless-dev-serverlessdeploymentbucket-1uxylfngthz91
+```
+
+- AWS - Download aws s3 hello from aws cli over docker
+```
+:~/projects/weekly30$ docker run --rm -it  -v ~/.aws:/root/.aws -v $(pwd):/aws amazon/aws-cli s3 cp s3://aws-cli-docker-demo/hello .
+download: s3://aws-cli-docker-demo/hello to ./hello 
+
+:~/projects/weekly30$ cat hello
+Hello from Docker!
+```
+
+- AWS - passing environment variables -e
+```
+:~/projects/weekly30$ docker run --rm -it -v ~/.aws:/root/.aws -e AWS_PROFILE amazon/aws-cli s3 ls
+2021-01-12 17:35:19 cf-templates-63uh8fkzfivz-us-east-2
+2021-01-26 13:21:32 serverless-dev-serverlessdeploymentbucket-1uxylfngthz91
+```
+
+- AWS - configuring aws-cli docker client in linux
+- ~/.bashrc
+```
+...
+alias aws='docker run --rm -it -v ~/.aws:/root/.aws -v $(pwd):/aws amazon/aws-cli'
+
+$ . ~/.bashrc
+
+$ aws s3 ls
+2021-01-12 17:35:19 cf-templates-63uh8fkzfivz-us-east-2
+2021-01-26 13:21:32 serverless-dev-serverlessdeploymentbucket-1uxylfngthz91
+```
+
+---
+## Step  - CI
+
+
+---
+## Step  - CD
+
+
