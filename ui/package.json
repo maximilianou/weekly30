@@ -8,14 +8,15 @@
     "react-query": "^3.8.3",
     "react-scripts": "4.0.2",
     "styled-components": "^5.2.1",
+    "serve": "^11.3.2",
     "web-vitals": "^1.1.0"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "html": "node ./node_modules/serve/bin/serve.js -s build",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "start": "node ./node_modules/react-scripts/bin/react-scripts.js start",
+    "build": "node ./node_modules/react-scripts/bin/react-scripts.js build",
+    "test":  "node ./node_modules/react-scripts/bin/react-scripts.js test",
+    "eject": "node ./node_modules/react-scripts/bin/react-scripts.js eject",
+    "html":  "node ./node_modules/serve/bin/serve.js -l 3030 -s build"
   },
   "eslintConfig": {
     "extends": [
@@ -46,7 +47,6 @@
     "@types/react": "^17.0.1",
     "@types/react-dom": "^17.0.0",
     "@types/styled-components": "^5.1.7",
-    "serve": "^11.3.2",
     "typescript": "^4.1.5"
   }
 }

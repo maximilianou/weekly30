@@ -60,7 +60,7 @@ npm i -D @types/jest ts-jest ts-node typescript
 
 ---
 ## Step 4 - Docker Image
-- api/Dockerfile
+- api/Dockerfile.ci
 ```dockerfile
 FROM node:alpine AS builder
 WORKDIR /usr/src/app
@@ -79,7 +79,7 @@ WORKDIR /usr/src/app
 RUN chown node:node .
 USER node
 COPY --chown=node:node package*.json ./
-RUN npm install
+RUN npm install --production
 COPY --from=builder /usr/src/app/lib/ lib/
 EXPOSE 3000
 ENTRYPOINT [ "/sbin/tini","--", "node", "lib/index.js" ]
@@ -414,4 +414,104 @@ docker@minikube:~$ cat .docker/config.json
 		}
 	}
 }
+```
+
+---
+## Step 11 - Docker UI React Image, and Container Running in port 3030.
+
+- ui/package.json
+```json
+{
+  "name": "ui",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "react": "^17.0.1",
+    "react-dom": "^17.0.1",
+    "react-query": "^3.8.3",
+    "react-scripts": "4.0.2",
+    "styled-components": "^5.2.1",
+    "serve": "^11.3.2",
+    "web-vitals": "^1.1.0"
+  },
+  "scripts": {
+    "start": "node ./node_modules/react-scripts/bin/react-scripts.js start",
+    "build": "node ./node_modules/react-scripts/bin/react-scripts.js build",
+    "test":  "node ./node_modules/react-scripts/bin/react-scripts.js test",
+    "eject": "node ./node_modules/react-scripts/bin/react-scripts.js eject",
+    "html":  "node ./node_modules/serve/bin/serve.js -l 3030 -s build"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "@material-ui/core": "^4.11.3",
+    "@material-ui/icons": "^4.11.2",
+    "@testing-library/jest-dom": "^5.11.9",
+    "@testing-library/react": "^11.2.5",
+    "@testing-library/user-event": "^12.7.0",
+    "@types/jest": "^26.0.20",
+    "@types/node": "^12.19.16",
+    "@types/react": "^17.0.1",
+    "@types/react-dom": "^17.0.0",
+    "@types/styled-components": "^5.1.7",
+    "typescript": "^4.1.5"
+  }
+}
+```
+- dockerignore
+```
+*
+!public/
+!src/
+!tsconfig.json
+!tsconfig.build.json
+!package.json
+!package-lock.json
+```
+
+- ui/Dockerfile.ci
+```dockerfile
+FROM node:alpine AS builder
+WORKDIR /usr/src/app
+RUN  chown node:node .
+USER node
+COPY --chown=node:node package*.json ./
+RUN  npm ci
+COPY --chown=node:node tsconfig*.json ./
+COPY --chown=node:node public public
+COPY --chown=node:node src src
+RUN  npm run build
+
+FROM node:alpine
+ENV NODE_ENV=production
+RUN apk add --no-cache tini
+WORKDIR /usr/src/app
+RUN chown node:node .
+USER node
+COPY --chown=node:node package*.json ./
+RUN npm install --production
+COPY --chown=node:node --from=builder /usr/src/app/build/ build/
+EXPOSE 3030
+ENTRYPOINT [ "/sbin/tini","--", "npm", "run", "html" ]
+```
+
+- Check UI React container, running in port 3030
+```
+$ docker run -p 3030:3030 maximilianou/ui30local:latest
 ```
