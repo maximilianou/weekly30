@@ -655,6 +655,8 @@ Hello from Docker!
 - AWS - configuring aws-cli docker client in linux
 - ~/.bashrc
 ```
+
+- AWS - cli add to local env
 ...
 alias aws='docker run --rm -it -v ~/.aws:/root/.aws -v $(pwd):/aws amazon/aws-cli'
 
@@ -666,10 +668,51 @@ $ aws s3 ls
 ```
 
 ---
-## Step  - CI
+## Step  - CI - AWS Secret 
 
+- AWS - Kubectl delete secret
+```
+:~/projects/weekly30$ kubectl delete secret generic my-registry-key 
+secret "my-registry-key" deleted
+Error from server (NotFound): secrets "generic" not found
+```
+
+- AWS - Kubectl create secret my-registry-key
+```
+:~/projects/weekly30$ kubectl create secret generic my-registry-key --from-file=.dockerconfigjson=../../.docker/config.json --type=kubernetes.io/dockerconfigjson
+secret/my-registry-key created
+```
+
+- AWS - ECR - kubectl get aws docker-server
+```
+:~/projects/weekly30$ aws ecr get-authorization-token
+AUTHORIZATIONDATA       Q.....    2021-02-14T04:09:16.253000+00:00        https://620157586684.dkr.ecr.us-east-2.amazonaws.com
+```
+
+- AWS - ECR - kubectl get aws user docker-passsword
+```
+:~/projects/weekly30$ aws ecr get-login-password
+ey.....................
+```
+
+- AWS - ECR - kubectl secrete *IN One Step*
+```
+:~/projects/weekly30$ kubectl create secret docker-registry my-registry-key --docker-server=https://620157586684.dkr.ecr.us-east-2.amazonaws.com --docker-username=maximilianou --docker-password=ey..................
+secret/my-registry-key created
+```
+
+- AWS - ECR - Check kubectl Secret
+```
+:~/projects/weekly30$ kubectl get secret
+NAME                  TYPE                                  DATA   AGE
+default-token-rngjz   kubernetes.io/service-account-token   3      10d
+my-registry-key       kubernetes.io/dockerconfigjson        1      112s
+```
 
 ---
-## Step  - CD
+## Step  - CD - Configure Deployment Component - AWS kubernetes
 
+- 
+```
 
+```

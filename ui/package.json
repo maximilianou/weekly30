@@ -14,7 +14,7 @@
   "scripts": {
     "start": "node ./node_modules/react-scripts/bin/react-scripts.js start",
     "build": "node ./node_modules/react-scripts/bin/react-scripts.js build",
-    "test":  "node ./node_modules/react-scripts/bin/react-scripts.js test",
+    "test":  "node ./node_modules/react-scripts/bin/react-scripts.js test --watchAll=false",
     "eject": "node ./node_modules/react-scripts/bin/react-scripts.js eject",
     "html":  "node ./node_modules/serve/bin/serve.js -l 3030 -s build"
   },
