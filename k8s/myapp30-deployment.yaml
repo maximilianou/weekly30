@@ -13,8 +13,12 @@ spec:
       labels:
         app: myapp30
     spec:
+      imagePullSecrets:
+        - name: my-registry-key
       containers:
       - name: myapp30
-        image: maximilianou/ui30ci
+#        image: docker.io/maximilianou/ui30ci
+        image: maximilianou/ui30ci:latest
+        imagePullPolicy: Always
         ports:
         - containerPort: 3030

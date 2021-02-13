@@ -710,9 +710,247 @@ my-registry-key       kubernetes.io/dockerconfigjson        1      112s
 ```
 
 ---
+## Step  - CD - github action to docker hub, fron & back images
+
+### UI Docker images
+- ui/Dockerfile.ci
+```dockerfile
+FROM node:alpine AS builder
+WORKDIR /usr/src/app
+RUN  chown node:node .
+USER node
+COPY --chown=node:node package*.json ./
+RUN  npm ci
+COPY --chown=node:node tsconfig*.json ./
+COPY --chown=node:node public public
+COPY --chown=node:node src src
+RUN  npm run build
+
+FROM node:alpine
+ENV NODE_ENV=production
+RUN apk add --no-cache tini
+WORKDIR /usr/src/app
+RUN chown node:node .
+USER node
+COPY --chown=node:node package*.json ./
+RUN npm install --production
+COPY --chown=node:node --from=builder /usr/src/app/build/ build/
+EXPOSE 3030
+ENTRYPOINT [ "/sbin/tini","--", "npm", "run", "html" ]
+```
+
+- ui/package.json
+```
+{
+  "name": "ui",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "react": "^17.0.1",
+    "react-dom": "^17.0.1",
+    "react-query": "^3.8.3",
+    "react-scripts": "4.0.2",
+    "styled-components": "^5.2.1",
+    "serve": "^11.3.2",
+    "web-vitals": "^1.1.0"
+  },
+  "scripts": {
+    "start": "node ./node_modules/react-scripts/bin/react-scripts.js start",
+    "build": "node ./node_modules/react-scripts/bin/react-scripts.js build",
+    "test":  "node ./node_modules/react-scripts/bin/react-scripts.js test --watchAll=false",
+    "eject": "node ./node_modules/react-scripts/bin/react-scripts.js eject",
+    "html":  "node ./node_modules/serve/bin/serve.js -l 3030 -s build"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "@material-ui/core": "^4.11.3",
+    "@material-ui/icons": "^4.11.2",
+    "@testing-library/jest-dom": "^5.11.9",
+    "@testing-library/react": "^11.2.5",
+    "@testing-library/user-event": "^12.7.0",
+    "@types/jest": "^26.0.20",
+    "@types/node": "^12.19.16",
+    "@types/react": "^17.0.1",
+    "@types/react-dom": "^17.0.0",
+    "@types/styled-components": "^5.1.7",
+    "typescript": "^4.1.5"
+  }
+}
+```
+### Final Result of Deployment
+- Github Action - Push - Result Images in DockerHub
+```
+$ git push
+
+Docker image docker.io/***/api30ci:v1 pushed to registry
+Docker image docker.io/***/ui30ci:v1 pushed to registry
+```
+
+---
 ## Step  - CD - Configure Deployment Component - AWS kubernetes
 
-- 
+- k8s/myapp30-deployment.yml
+```yml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: myapp30
+  labels:
+    app: myapp30
+spec:
+  selector:
+    matchLabels:
+      app: myapp30
+  template:
+    metadata:
+      labels:
+        app: myapp30
+    spec:
+      containers:
+      - name: myapp30
+#        image: docker.io/maximilianou/ui30ci
+        image: maximilianou/ui30ci:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 3030
 ```
 
+- CD - Create Apply AWS Deployment Service
 ```
+:~/projects/weekly30$ kubectl apply -f k8s/myapp30-deployment.yaml 
+deployment.apps/myapp30 created
+
+:~/projects/weekly30$ kubectl get pod
+NAME                       READY   STATUS              RESTARTS   AGE
+myapp30-554469f485-jpfqk   0/1     ContainerCreating   0          56s
+```
+
+- logs pod
+```
+:~/projects/weekly30$  kubectl logs myapp30-554469f485-jpfqk
+
+> ui@0.1.0 html
+> node ./node_modules/serve/bin/serve.js -l 3030 -s build
+
+WARNING: Checking for updates failed (use `--debug` to see full error)
+INFO: Accepting connections at http://localhost:3030
+```
+
+- Delete Deployment service
+```
+:~/projects/weekly30$ kubectl delete -f k8s/myapp30-deployment.yaml 
+deployment.apps "myapp30" deleted
+```
+
+- Add Secret to Deployment Service
+```
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: myapp30
+  labels:
+    app: myapp30
+spec:
+  selector:
+    matchLabels:
+      app: myapp30
+  template:
+    metadata:
+      labels:
+        app: myapp30
+    spec:
+      imagePullSecrets:
+        - name: my-registry-key
+      containers:
+      - name: myapp30
+#        image: docker.io/maximilianou/ui30ci
+        image: maximilianou/ui30ci:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 3030
+```
+
+- AWS - DockerHub - Kubernetes Secret is running
+```
+:~/projects/weekly30$ kubectl apply -f k8s/myapp30-deployment.yaml 
+deployment.apps/myapp30 created
+:~/projects/weekly30$ kubectl get pod
+NAME                      READY   STATUS    RESTARTS   AGE
+myapp30-c5f899597-g8q7d   1/1     Running   0          15s
+```
+
+- Describe Deployment Pod Situation with Secret
+```
+:~/projects/weekly30$ kubectl describe pod myapp30-c5f899597-g8q7d
+Name:         myapp30-c5f899597-g8q7d
+Namespace:    my-namespace
+Priority:     0
+Node:         minikube/192.168.49.2
+Start Time:   Sat, 13 Feb 2021 15:16:58 -0300
+Labels:       app=myapp30
+              pod-template-hash=c5f899597
+Annotations:  <none>
+Status:       Running
+IP:           172.17.0.7
+IPs:
+  IP:           172.17.0.7
+Controlled By:  ReplicaSet/myapp30-c5f899597
+Containers:
+  myapp30:
+    Container ID:   docker://3c21930bb742335e4e8beef5791df88a27c8008fd691c04a6833519c649b1c6c
+    Image:          maximilianou/ui30ci:latest
+    Image ID:       docker-pullable://maximilianou/ui30ci@sha256:a5ca7193ef1c9d6a1c33408126eda1e5c1979b067e9002de6bb4406c8a30f43f
+    Port:           3030/TCP
+    Host Port:      0/TCP
+    State:          Running
+      Started:      Sat, 13 Feb 2021 15:17:02 -0300
+    Ready:          True
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from default-token-rngjz (ro)
+Conditions:
+  Type              Status
+  Initialized       True 
+  Ready             True 
+  ContainersReady   True 
+  PodScheduled      True 
+Volumes:
+  default-token-rngjz:
+    Type:        Secret (a volume populated by a Secret)
+    SecretName:  default-token-rngjz
+    Optional:    false
+QoS Class:       BestEffort
+Node-Selectors:  <none>
+Tolerations:     node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
+                 node.kubernetes.io/unreachable:NoExecute op=Exists for 300s
+Events:
+  Type    Reason     Age   From               Message
+  ----    ------     ----  ----               -------
+  Normal  Scheduled  3m3s  default-scheduler  Successfully assigned my-namespace/myapp30-c5f899597-g8q7d to minikube
+  Normal  Pulling    3m3s  kubelet            Pulling image "maximilianou/ui30ci:latest"
+  Normal  Pulled     3m    kubelet            Successfully pulled image "maximilianou/ui30ci:latest" in 2.62013922s
+  Normal  Created    3m    kubelet            Created container myapp30
+  Normal  Started    3m    kubelet            Started container myapp30
+```
+
+### Kubernete: Secret have to be in the same namespace of the Pod
+
+
