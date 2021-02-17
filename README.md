@@ -668,7 +668,7 @@ $ aws s3 ls
 ```
 
 ---
-## Step  - CI - AWS Secret 
+## Step 14 - CI - AWS Secret 
 
 - AWS - Kubectl delete secret
 ```
@@ -710,7 +710,7 @@ my-registry-key       kubernetes.io/dockerconfigjson        1      112s
 ```
 
 ---
-## Step  - CD - github action to docker hub, fron & back images
+## Step 15 - CD - github action to docker hub, fron & back images
 
 ### UI Docker images
 - ui/Dockerfile.ci
@@ -804,7 +804,7 @@ Docker image docker.io/***/ui30ci:v1 pushed to registry
 ```
 
 ---
-## Step  - CD - Configure Deployment Component - AWS kubernetes
+## Step 16 - CD - Configure Deployment Component - AWS kubernetes
 
 - k8s/myapp30-deployment.yml
 ```yml
@@ -952,5 +952,204 @@ Events:
 ```
 
 ### Kubernete: Secret have to be in the same namespace of the Pod
+
+---
+## Step 17 - CD - AWS EKS Create Cluster / Delete Cluster kubernetes
+
+- eksctl over docker
+```
+:~/projects$ docker run weaveworks/eksctl
+
+:~/projects$ docker run weaveworks/eksctl eksctl version
+[ℹ]  version.Info{BuiltAt:"", GitCommit:"", GitTag:"0.1.21"}
+```
+
+- eksctl over docker, without credentials, failed
+```
+$ docker run weaveworks/eksctl eksctl create cluster --name cluster30 --version 1.17 --region us-east-2 --nodegroup-name linux-nodes --node-type t2.micro --nodes 2
+
+[✖]  checking AWS STS access – cannot get role ARN for current session: NoCredentialProviders:
+```
+
+- eksctl over docker, with AWS & Kubernetes Credentials!
+```
+:~/projects$ docker run -v $HOME/.aws:/root/.aws -v $HOME/.kube:/root/.kube weaveworks/eksctl eksctl create cluster --name cluster30 --version 1.11 --region us-east-2 --nodegroup-name linux-nodes --node-type t2.micro --nodes 2
+
+[ℹ]  using region us-east-2
+[ℹ]  setting availability zones to [us-east-2a us-east-2b us-east-2c]
+[ℹ]  subnets for us-east-2a - public:192.168.0.0/19 private:192.168.96.0/19
+[ℹ]  subnets for us-east-2b - public:192.168.32.0/19 private:192.168.128.0/19
+[ℹ]  subnets for us-east-2c - public:192.168.64.0/19 private:192.168.160.0/19
+[ℹ]  nodegroup "linux-nodes" will use "ami-0b10ebfc82e446296" [AmazonLinux2/1.11]
+[ℹ]  creating EKS cluster "cluster30" in "us-east-2" region
+[ℹ]  will create 2 separate CloudFormation stacks for cluster itself and the initial nodegroup
+[ℹ]  if you encounter any issues, check CloudFormation console or try 'eksctl utils describe-stacks --region=us-east-2 --name=cluster30'
+[ℹ]  creating cluster stack "eksctl-cluster30-cluster"
+...
+[✖]  unexpected status "ROLLBACK_IN_PROGRESS" while waiting for CloudFormation stack "eksctl-cluster30-cluster" to reach "CREATE_COMPLETE" status
+...
+[ℹ]  fetching stack events in attempt to troubleshoot the root cause of the failure
+InvalidParameterException; Request ID: cc78a9f8-4eb5-4810-8479-fd1813bd2bb3; Proxy: null)"
+...
+[ℹ]  1 error(s) occurred and cluster hasn't been created properly, you may wish to check CloudFormation console
+[ℹ]  to cleanup resources, run 'eksctl delete cluster --region=us-east-2 --name=cluster30'
+...
+[✖]  waiting for CloudFormation stack "eksctl-cluster30-cluster" to reach "CREATE_COMPLETE" status: ResourceNotReady: failed waiting for successful resource state
+...
+[✖]  failed to create cluster "cluster30"
+
+```
+
+```
+$ docker run -v $HOME/.aws:/root/.aws -v $HOME/.kube:/root/.kube weaveworks/eksctl eksctl delete cluster --name cluster30
+[ℹ]  deleting EKS cluster "cluster30"
+[ℹ]  will delete stack "eksctl-cluster30-cluster"
+[✔]  the following EKS cluster resource(s) for "cluster30" will be deleted: cluster. If in doubt, check CloudFormation console
+
+```
+
+- AWS
+```
+:~/projects/weekly30$ cat ~/.aws/credentials 
+[default]
+aws_access_key_id = A...
+aws_secret_access_key = q...
+
+:~/projects/weekly30$ cat ~/.aws/config 
+[default]
+region = us-east-2
+output = text
+cli_binary_format=raw-in-base64-out
+```
+
+- ecsctl Install binaries locally
+```
+$ curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+
+# mv /tmp/eksctl /usr/local/bin
+
+$ eksctl version
+0.38.0
+
+$ kubectl version
+Client Version: version.Info{Major:"1", Minor:"20", GitVersion:"v1.20.2", GitCommit:"faecb196815e248d3ecfb03c680a4507229c2a56", GitTreeState:"clean", BuildDate:"2021-01-13T13:28:09Z", GoVersion:"go1.15.5", Compiler:"gc", Platform:"linux/amd64"}
+Server Version: version.Info{Major:"1", Minor:"20", GitVersion:"v1.20.2", GitCommit:"faecb196815e248d3ecfb03c680a4507229c2a56", GitTreeState:"clean", BuildDate:"2021-01-13T13:20:00Z", GoVersion:"go1.15.5", Compiler:"gc", Platform:"linux/amd64"}
+
+```
+
+- eksctl Successfull created Cluster! and Nodes!
+```
+$ eksctl create cluster --name cluster30 --region us-east-2 --nodegroup-name linux-nodejs --node-type t2.micro --nodes 2
+
+2021-02-17 14:54:31 [ℹ]  eksctl version 0.38.0
+2021-02-17 14:54:31 [ℹ]  using region us-east-2
+2021-02-17 14:54:32 [ℹ]  setting availability zones to [us-east-2c us-east-2b us-east-2a]
+2021-02-17 14:54:32 [ℹ]  subnets for us-east-2c - public:192.168.0.0/19 private:192.168.96.0/19
+2021-02-17 14:54:32 [ℹ]  subnets for us-east-2b - public:192.168.32.0/19 private:192.168.128.0/19
+2021-02-17 14:54:32 [ℹ]  subnets for us-east-2a - public:192.168.64.0/19 private:192.168.160.0/19
+2021-02-17 14:54:33 [ℹ]  nodegroup "linux-nodejs" will use "ami-043526cfbcdc14c2c" [AmazonLinux2/1.18]
+2021-02-17 14:54:33 [ℹ]  using Kubernetes version 1.18
+2021-02-17 14:54:33 [ℹ]  creating EKS cluster "cluster30" in "us-east-2" region with un-managed nodes
+2021-02-17 14:54:33 [ℹ]  will create 2 separate CloudFormation stacks for cluster itself and the initial nodegroup
+2021-02-17 14:54:33 [ℹ]  if you encounter any issues, check CloudFormation console or try 'eksctl utils describe-stacks --region=us-east-2 --cluster=cluster30'
+2021-02-17 14:54:33 [ℹ]  CloudWatch logging will not be enabled for cluster "cluster30" in "us-east-2"
+2021-02-17 14:54:33 [ℹ]  you can enable it with 'eksctl utils update-cluster-logging --enable-types={SPECIFY-YOUR-LOG-TYPES-HERE (e.g. all)} --region=us-east-2 --cluster=cluster30'
+2021-02-17 14:54:33 [ℹ]  Kubernetes API endpoint access will use default of {publicAccess=true, privateAccess=false} for cluster "cluster30" in "us-east-2"
+2021-02-17 14:54:33 [ℹ]  2 sequential tasks: { create cluster control plane "cluster30", 3 sequential sub-tasks: { wait for control plane to become ready, create addons, create nodegroup "linux-nodejs" } }
+2021-02-17 14:54:33 [ℹ]  building cluster stack "eksctl-cluster30-cluster"
+2021-02-17 14:54:35 [ℹ]  deploying stack "eksctl-cluster30-cluster"
+2021-02-17 14:54:35 [ℹ]  waiting for CloudFormation stack "eksctl-cluster30-cluster"
+2021-02-17 14:54:54 [ℹ]  waiting for CloudFormation stack "eksctl-cluster30-cluster"
+2021-02-17 14:55:10 [ℹ]  waiting for CloudFormation stack "eksctl-cluster30-cluster"
+2021-02-17 14:55:29 [ℹ]  waiting for CloudFormation stack "eksctl-cluster30-cluster"
+2021-02-17 14:55:48 [ℹ]  waiting for CloudFormation stack "eksctl-cluster30-cluster"
+2021-02-17 14:56:07 [ℹ]  waiting for CloudFormation stack "eksctl-cluster30-cluster"
+2021-02-17 14:56:26 [ℹ]  waiting for CloudFormation stack "eksctl-cluster30-cluster"
+2021-02-17 14:56:47 [ℹ]  waiting for CloudFormation stack "eksctl-cluster30-cluster"
+2021-02-17 14:57:06 [ℹ]  waiting for CloudFormation stack "eksctl-cluster30-cluster"
+2021-02-17 14:57:24 [ℹ]  waiting for CloudFormation stack "eksctl-cluster30-cluster"
+2021-02-17 14:57:41 [ℹ]  waiting for CloudFormation stack "eksctl-cluster30-cluster"
+2021-02-17 14:58:00 [ℹ]  waiting for CloudFormation stack "eksctl-cluster30-cluster"
+2021-02-17 14:58:17 [ℹ]  waiting for CloudFormation stack "eksctl-cluster30-cluster"
+2021-02-17 14:58:38 [ℹ]  waiting for CloudFormation stack "eksctl-cluster30-cluster"
+2021-02-17 14:58:55 [ℹ]  waiting for CloudFormation stack "eksctl-cluster30-cluster"
+2021-02-17 14:59:12 [ℹ]  waiting for CloudFormation stack "eksctl-cluster30-cluster"
+2021-02-17 14:59:29 [ℹ]  waiting for CloudFormation stack "eksctl-cluster30-cluster"
+2021-02-17 14:59:49 [ℹ]  waiting for CloudFormation stack "eksctl-cluster30-cluster"
+2021-02-17 15:00:05 [ℹ]  waiting for CloudFormation stack "eksctl-cluster30-cluster"
+2021-02-17 15:00:21 [ℹ]  waiting for CloudFormation stack "eksctl-cluster30-cluster"
+2021-02-17 15:00:42 [ℹ]  waiting for CloudFormation stack "eksctl-cluster30-cluster"
+2021-02-17 15:01:02 [ℹ]  waiting for CloudFormation stack "eksctl-cluster30-cluster"
+2021-02-17 15:01:20 [ℹ]  waiting for CloudFormation stack "eksctl-cluster30-cluster"
+2021-02-17 15:01:37 [ℹ]  waiting for CloudFormation stack "eksctl-cluster30-cluster"
+2021-02-17 15:01:57 [ℹ]  waiting for CloudFormation stack "eksctl-cluster30-cluster"
+2021-02-17 15:02:13 [ℹ]  waiting for CloudFormation stack "eksctl-cluster30-cluster"
+2021-02-17 15:02:33 [ℹ]  waiting for CloudFormation stack "eksctl-cluster30-cluster"
+2021-02-17 15:02:50 [ℹ]  waiting for CloudFormation stack "eksctl-cluster30-cluster"
+2021-02-17 15:03:07 [ℹ]  waiting for CloudFormation stack "eksctl-cluster30-cluster"
+2021-02-17 15:03:25 [ℹ]  waiting for CloudFormation stack "eksctl-cluster30-cluster"
+2021-02-17 15:03:44 [ℹ]  waiting for CloudFormation stack "eksctl-cluster30-cluster"
+2021-02-17 15:04:00 [ℹ]  waiting for CloudFormation stack "eksctl-cluster30-cluster"
+2021-02-17 15:04:16 [ℹ]  waiting for CloudFormation stack "eksctl-cluster30-cluster"
+2021-02-17 15:04:34 [ℹ]  waiting for CloudFormation stack "eksctl-cluster30-cluster"
+2021-02-17 15:04:53 [ℹ]  waiting for CloudFormation stack "eksctl-cluster30-cluster"
+2021-02-17 15:05:09 [ℹ]  waiting for CloudFormation stack "eksctl-cluster30-cluster"
+2021-02-17 15:05:30 [ℹ]  waiting for CloudFormation stack "eksctl-cluster30-cluster"
+2021-02-17 15:05:50 [ℹ]  waiting for CloudFormation stack "eksctl-cluster30-cluster"
+2021-02-17 15:06:06 [ℹ]  waiting for CloudFormation stack "eksctl-cluster30-cluster"
+2021-02-17 15:06:24 [ℹ]  waiting for CloudFormation stack "eksctl-cluster30-cluster"
+2021-02-17 15:06:45 [ℹ]  waiting for CloudFormation stack "eksctl-cluster30-cluster"
+2021-02-17 15:08:00 [ℹ]  building nodegroup stack "eksctl-cluster30-nodegroup-linux-nodejs"
+2021-02-17 15:08:00 [ℹ]  --nodes-min=2 was set automatically for nodegroup linux-nodejs
+2021-02-17 15:08:00 [ℹ]  --nodes-max=2 was set automatically for nodegroup linux-nodejs
+2021-02-17 15:08:02 [ℹ]  deploying stack "eksctl-cluster30-nodegroup-linux-nodejs"
+2021-02-17 15:08:02 [ℹ]  waiting for CloudFormation stack "eksctl-cluster30-nodegroup-linux-nodejs"
+2021-02-17 15:08:18 [ℹ]  waiting for CloudFormation stack "eksctl-cluster30-nodegroup-linux-nodejs"
+2021-02-17 15:08:37 [ℹ]  waiting for CloudFormation stack "eksctl-cluster30-nodegroup-linux-nodejs"
+2021-02-17 15:08:54 [ℹ]  waiting for CloudFormation stack "eksctl-cluster30-nodegroup-linux-nodejs"
+2021-02-17 15:09:10 [ℹ]  waiting for CloudFormation stack "eksctl-cluster30-nodegroup-linux-nodejs"
+2021-02-17 15:09:28 [ℹ]  waiting for CloudFormation stack "eksctl-cluster30-nodegroup-linux-nodejs"
+2021-02-17 15:09:49 [ℹ]  waiting for CloudFormation stack "eksctl-cluster30-nodegroup-linux-nodejs"
+2021-02-17 15:10:05 [ℹ]  waiting for CloudFormation stack "eksctl-cluster30-nodegroup-linux-nodejs"
+2021-02-17 15:10:22 [ℹ]  waiting for CloudFormation stack "eksctl-cluster30-nodegroup-linux-nodejs"
+2021-02-17 15:10:40 [ℹ]  waiting for CloudFormation stack "eksctl-cluster30-nodegroup-linux-nodejs"
+2021-02-17 15:10:59 [ℹ]  waiting for CloudFormation stack "eksctl-cluster30-nodegroup-linux-nodejs"
+2021-02-17 15:11:19 [ℹ]  waiting for CloudFormation stack "eksctl-cluster30-nodegroup-linux-nodejs"
+2021-02-17 15:11:37 [ℹ]  waiting for CloudFormation stack "eksctl-cluster30-nodegroup-linux-nodejs"
+2021-02-17 15:11:57 [ℹ]  waiting for CloudFormation stack "eksctl-cluster30-nodegroup-linux-nodejs"
+2021-02-17 15:12:15 [ℹ]  waiting for CloudFormation stack "eksctl-cluster30-nodegroup-linux-nodejs"
+2021-02-17 15:12:16 [ℹ]  waiting for the control plane availability...
+2021-02-17 15:12:16 [✔]  saved kubeconfig as "/home/maximilianou/.kube/config"
+2021-02-17 15:12:16 [ℹ]  no tasks
+2021-02-17 15:12:16 [✔]  all EKS cluster resources for "cluster30" have been created
+2021-02-17 15:12:17 [ℹ]  adding identity "arn:aws:iam::620157586684:role/eksctl-cluster30-nodegroup-linux-NodeInstanceRole-100JGVFTLHZQR" to auth ConfigMap
+2021-02-17 15:12:18 [ℹ]  nodegroup "linux-nodejs" has 0 node(s)
+2021-02-17 15:12:18 [ℹ]  waiting for at least 2 node(s) to become ready in "linux-nodejs"
+2021-02-17 15:12:48 [ℹ]  nodegroup "linux-nodejs" has 2 node(s)
+2021-02-17 15:12:48 [ℹ]  node "ip-192-168-4-60.us-east-2.compute.internal" is ready
+2021-02-17 15:12:48 [ℹ]  node "ip-192-168-58-49.us-east-2.compute.internal" is ready
+2021-02-17 15:12:52 [ℹ]  kubectl command should work with "/home/maximilianou/.kube/config", try 'kubectl get nodes'
+2021-02-17 15:12:52 [✔]  EKS cluster "cluster30" in "us-east-2" region is ready
+```
+
+```
+$ kubectl get nodes
+NAME                                          STATUS   ROLES    AGE     VERSION
+ip-192-168-4-60.us-east-2.compute.internal    Ready    <none>   2m28s   v1.18.9-eks-d1db3c
+ip-192-168-58-49.us-east-2.compute.internal   Ready    <none>   2m28s   v1.18.9-eks-d1db3c
+```
+
+- Clean AWS!!!
+```
+$ eksctl delete cluster --name cluster30
+
+```
+
+---
+## Step 18 - CD - AWS EKS deploy worker nodes kubernetes
+
+
+---
+## Step 19 - CD - AWS EKS from GitHub Action
 
 
