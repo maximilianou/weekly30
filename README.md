@@ -1,6 +1,19 @@
 # weekly30
 
 ---
+- TOC
+---
+* Step 3 - Typescript Project
+* Step 4 - Docker Image
+* Step 6 - Github Action looking for CI
+* Step 12 - CI - github action - Docker Image push to DockerHub
+* Step 15 - CD - github action to docker hub, fron & back images
+* Step 16 - CD - Configure Deployment Component - AWS kubernetes DockerHub image
+* Step 17 - AWS EKS Kubernetes cluster create/delete (eksctl)
+---
+
+
+---
 ## Step 1 - start project from phone. ( I have an iclever keyboard )
 
 - Termux
@@ -1139,10 +1152,28 @@ ip-192-168-4-60.us-east-2.compute.internal    Ready    <none>   2m28s   v1.18.9-
 ip-192-168-58-49.us-east-2.compute.internal   Ready    <none>   2m28s   v1.18.9-eks-d1db3c
 ```
 
-- Clean AWS!!!
+- Clean AWS!!! Delete the Kubernetes Cluster.
 ```
 $ eksctl delete cluster --name cluster30
 
+2021-02-17 17:58:54 [ℹ]  eksctl version 0.38.0
+2021-02-17 17:58:54 [ℹ]  using region us-east-2
+2021-02-17 17:58:54 [ℹ]  deleting EKS cluster "cluster30"
+2021-02-17 17:58:57 [ℹ]  deleted 0 Fargate profile(s)
+2021-02-17 17:58:58 [✔]  kubeconfig has been updated
+2021-02-17 17:58:58 [ℹ]  cleaning up AWS load balancers created by Kubernetes objects of Kind Service or Ingress
+2021-02-17 17:59:03 [ℹ]  2 sequential tasks: { delete nodegroup "linux-nodejs", delete cluster control plane "cluster30" [async] }
+2021-02-17 17:59:04 [ℹ]  will delete stack "eksctl-cluster30-nodegroup-linux-nodejs"
+2021-02-17 17:59:04 [ℹ]  waiting for stack "eksctl-cluster30-nodegroup-linux-nodejs" to get deleted
+2021-02-17 17:59:04 [ℹ]  waiting for CloudFormation stack "eksctl-cluster30-nodegroup-linux-nodejs"
+2021-02-17 17:59:22 [ℹ]  waiting for CloudFormation stack "eksctl-cluster30-nodegroup-linux-nodejs"
+2021-02-17 17:59:38 [ℹ]  waiting for CloudFormation stack "eksctl-cluster30-nodegroup-linux-nodejs"
+2021-02-17 17:59:57 [ℹ]  waiting for CloudFormation stack "eksctl-cluster30-nodegroup-linux-nodejs"
+2021-02-17 18:00:14 [ℹ]  waiting for CloudFormation stack "eksctl-cluster30-nodegroup-linux-nodejs"
+2021-02-17 18:00:30 [ℹ]  waiting for CloudFormation stack "eksctl-cluster30-nodegroup-linux-nodejs"
+2021-02-17 18:00:50 [ℹ]  waiting for CloudFormation stack "eksctl-cluster30-nodegroup-linux-nodejs"
+2021-02-17 18:00:52 [ℹ]  will delete stack "eksctl-cluster30-cluster"
+2021-02-17 18:00:52 [✔]  all cluster resources were deleted
 ```
 
 ---
