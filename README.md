@@ -3,13 +3,13 @@
 ---
 - TOC
 ---
-1. Step 3 - Typescript Project
-1. Step 4 - Docker Image
-1. Step 6 - Github Action looking for CI
-1. Step 12 - CI - github action - Docker Image push to DockerHub
-1. Step 15 - CD - github action to docker hub, fron & back images
-1. Step 16 - CD - Configure Deployment Component - AWS kubernetes DockerHub image
-1. Step 17 - AWS EKS Kubernetes cluster create/delete (eksctl)
+1. **Step 3 - Typescript Project**
+1. **Step 4 - Docker Image**
+1. **Step 6 - Github Action looking for CI**
+1. **Step 12 - CI - github action - Docker Image push to DockerHub**
+1. **Step 15 - CD - github action to docker hub, fron & back images**
+1. **Step 16 - CD - Configure Deployment Component - AWS kubernetes DockerHub image**
+1. **Step 17 - AWS EKS Kubernetes cluster create/delete (eksctl)**
 ---
 
 
